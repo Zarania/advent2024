@@ -1,13 +1,13 @@
+use itertools::Itertools;
 use std::cmp::Ordering;
 
 advent_of_code::solution!(2);
 
-fn is_safe(level: &[u32]) -> bool {
-    let ordering = level[0].cmp(&level[1]);
+fn is_safe<'a>(level: impl Iterator<Item = &'a u32>) -> bool {
+    let mut level_iter = level.into_iter().tuple_windows().peekable();
+    let increasing = level_iter.peek().map(|(a, b)| a.cmp(b)).unwrap();
 
-    level
-        .windows(2)
-        .all(|w| w[0].cmp(&w[1]) == ordering && w[0].abs_diff(w[1]) <= 3)
+    level_iter.all(|(a, b)| a.cmp(b) == increasing && a.abs_diff(*b) <= 3)
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
@@ -19,7 +19,7 @@ pub fn part_one(input: &str) -> Option<u32> {
                     .map(|s| s.parse::<u32>().unwrap())
                     .collect::<Vec<u32>>()
             })
-            .filter(|l| is_safe(l))
+            .filter(|l| is_safe(l.iter()))
             .count() as u32,
     )
 }
@@ -46,9 +46,8 @@ pub fn part_two(input: &str) -> Option<u32> {
 
                 if let Some(fail) = fail {
                     for n in fail..=(fail + 1) {
-                        let mut clone = level.clone();
-                        clone.remove(n);
-                        if is_safe(&clone) {
+                        let skipped = level[..n].iter().chain(level[(n + 1)..].iter());
+                        if is_safe(skipped) {
                             return true;
                         }
                     }
