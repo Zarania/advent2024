@@ -1,26 +1,48 @@
-use regex::Regex;
-
 advent_of_code::solution!(3);
 
+#[allow(unused_assignments)]
 pub fn part_one(input: &str) -> Option<u32> {
-    let multiplications = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
-    multiplications.captures_iter(input).map(|cap| cap.extract()).map(|(_, [a, b])| {
-        a.parse::<u32>().unwrap() * b.parse::<u32>().unwrap()
-    }).sum::<u32>().into()
+    let mut sum = 0u32;
+    for mut i in 0..input.len() - 7 {
+        if &input[i..i + 4] == "mul(" {
+            let j = (i + 4..input.len())
+                .find(|c| &input[*c..*c + 1] == ")")
+                .unwrap();
+            if let Some(index) = input[i + 4..j].find(',') {
+                let (a, b) = input[i + 4..j].split_at(index);
+                sum += a.parse::<u32>().unwrap_or(0) * b[1..].parse::<u32>().unwrap_or(0);
+            }
+            i += j;
+        }
+    }
+
+    sum.into()
 }
 
+#[allow(unused_assignments)]
 pub fn part_two(input: &str) -> Option<u32> {
+    let mut sum = 0u32;
     let mut enabled = true;
-    let multiplications = Regex::new(r"mul\((\d+),(\d+)\)|do(n't)?\(\)").unwrap();
-    multiplications.captures_iter(input).map(|cap| {
-        match cap.get(0).unwrap().as_str() {
-            "do()" => {enabled = true; 0},
-            "don't()" => {enabled = false; 0},
-            _ => if enabled {
-                cap[1].parse::<u32>().unwrap() * cap[2].parse::<u32>().unwrap()
-            } else {0},
+    for mut i in 0..input.len() - 7 {
+        if enabled && &input[i..i + 4] == "mul(" {
+            let j = (i + 4..input.len())
+                .find(|c| &input[*c..*c + 1] == ")")
+                .unwrap();
+            if let Some(index) = input[i + 4..j].find(',') {
+                let (a, b) = input[i + 4..j].split_at(index);
+                sum += a.parse::<u32>().unwrap_or(0) * b[1..].parse::<u32>().unwrap_or(0);
+            }
+            i += j;
+        } else if &input[i..i + 4] == "do()" {
+            enabled = true;
+            i += 4;
+        } else if &input[i..i + 7] == "don't()" {
+            enabled = false;
+            i += 7;
         }
-    }).sum::<u32>().into()
+    }
+
+    sum.into()
 }
 
 #[cfg(test)]
