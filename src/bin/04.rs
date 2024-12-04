@@ -1,5 +1,7 @@
 advent_of_code::solution!(4);
 
+const XMAS: [char; 4] = ['X', 'M', 'A', 'S'];
+
 fn get_char(input: &str, position: usize, offset: isize) -> char {
     let position = position as isize + offset;
     if position >= 0 && position < input.len() as isize {
@@ -14,18 +16,19 @@ fn get_char(input: &str, position: usize, offset: isize) -> char {
 
 fn is_x_mas(input: &str, position: usize, offset: isize) -> bool {
     let up_left = get_char(input, position, offset);
-    let down_right = get_char(input, position, offset * -1);
+    let down_right = get_char(input, position, -offset);
     if !((up_left == 'M' && down_right == 'S') || (up_left == 'S' && down_right == 'M')) {
         return false;
     }
 
     let up_right = get_char(input, position, offset + 2);
-    let down_left = get_char(input, position, (offset + 2) * -1);
+    let down_left = get_char(input, position, -(offset + 2));
 
     (up_right == 'M' && down_left == 'S') || (up_right == 'S' && down_left == 'M')
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
+    //+1 to include the newline character
     let line_length = (input.lines().next()?.len() + 1) as isize;
     let offsets: Vec<isize> = vec![
         -line_length - 1,
@@ -45,10 +48,12 @@ pub fn part_one(input: &str) -> Option<u32> {
         .map(|(i, _)| {
             offsets
                 .iter()
-                .filter(|offset| {
-                    get_char(input, i, **offset) == 'M'
-                        && get_char(input, i, *offset * 2) == 'A'
-                        && get_char(input, i, *offset * 3) == 'S'
+                .filter(|&&offset| {
+                    //check 'S' first to skip early if it's out of bounds
+                    XMAS.iter()
+                        .enumerate()
+                        .rev()
+                        .all(|(j, c)| get_char(input, i, offset * j as isize) == *c)
                 })
                 .count() as u32
         })

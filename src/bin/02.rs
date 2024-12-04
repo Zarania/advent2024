@@ -41,7 +41,7 @@ pub fn part_two(input: &str) -> Option<u32> {
 
                 if let Some(fail) = fail {
                     for n in fail..=(fail + 1) {
-                        let skipped = level[..n].iter().chain(level[(n + 1)..].iter()).map(|&n| n);
+                        let skipped = level[..n].iter().chain(level[(n + 1)..].iter()).copied();
                         if is_safe(skipped) {
                             return true;
                         }
