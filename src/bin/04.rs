@@ -3,7 +3,10 @@ advent_of_code::solution!(4);
 fn get_char(input: &str, position: usize, offset: isize) -> char {
     let position = position as isize + offset;
     if position >= 0 && position < input.len() as isize {
-        input[position as usize..(position + 1) as usize].chars().next().unwrap()
+        input[position as usize..(position + 1) as usize]
+            .chars()
+            .next()
+            .unwrap()
     } else {
         '.'
     }
@@ -24,7 +27,6 @@ fn is_x_mas(input: &str, position: usize, offset: isize) -> bool {
 
 pub fn part_one(input: &str) -> Option<u32> {
     let line_length = (input.lines().next()?.len() + 1) as isize;
-    let mut sum = 0;
     let offsets: Vec<isize> = vec![
         -line_length - 1,
         -line_length,
@@ -36,35 +38,35 @@ pub fn part_one(input: &str) -> Option<u32> {
         line_length + 1,
     ];
 
-    for (i, char) in input.chars().enumerate() {
-        if char == 'X' {
-            for offset in offsets.iter() {
-                if get_char(input, i, *offset) == 'M'
-                    && get_char(input, i, offset * 2) == 'A'
-                    && get_char(input, i, offset * 3) == 'S'
-                {
-                    sum += 1;
-                }
-            }
-        }
-    }
-
-    Some(sum)
+    input
+        .chars()
+        .enumerate()
+        .filter(|(_, c)| *c == 'X')
+        .map(|(i, _)| {
+            offsets
+                .iter()
+                .filter(|offset| {
+                    get_char(input, i, **offset) == 'M'
+                        && get_char(input, i, *offset * 2) == 'A'
+                        && get_char(input, i, *offset * 3) == 'S'
+                })
+                .count() as u32
+        })
+        .sum::<u32>()
+        .into()
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
     let line_length = (input.lines().next()?.len() + 1) as isize;
-    let mut sum = 0;
 
-    for (i, char) in input.chars().enumerate() {
-        if char == 'A' {
-            if is_x_mas(input, i, line_length - 1) {
-                sum += 1;
-            }
-        }
-    }
-
-    Some(sum)
+    Some(
+        input
+            .chars()
+            .enumerate()
+            .filter(|(_, c)| *c == 'A')
+            .filter(|(i, _)| is_x_mas(input, *i, line_length - 1))
+            .count() as u32,
+    )
 }
 
 #[cfg(test)]
