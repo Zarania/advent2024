@@ -1,111 +1,56 @@
-use std::{cmp::Ordering, collections::HashMap, hash::BuildHasherDefault};
-
-use nohash_hasher::NoHashHasher;
+use std::{cmp::Ordering, collections::HashSet};
 
 advent_of_code::solution!(5);
 
-pub fn part_one(input: &str) -> Option<u32> {
+fn parse_input(input: &str) -> (HashSet<(u32, u32)>, &str) {
     let (first, second) = input.split_once("\n\n").unwrap();
-    let rules_vec = first
+    let rules = first
         .lines()
         .map(|line| {
             let (a, b) = line.split_once("|").unwrap();
-            let a = a.parse::<u32>().unwrap();
-            let b = b.parse::<u32>().unwrap();
-            (a, b)
+            (a.parse::<u32>().unwrap(), b.parse::<u32>().unwrap())
         })
-        .collect::<Vec<_>>();
+        .collect::<HashSet<_>>();
 
-    let mut rules: HashMap<u32, Vec<u32>, BuildHasherDefault<NoHashHasher<u32>>> =
-        HashMap::with_capacity_and_hasher(rules_vec.len(), BuildHasherDefault::default());
-    rules_vec.iter().for_each(|&(a, b)| {
-        rules
-            .entry(a)
-            .and_modify(|e| e.push(b))
-            .or_insert_with(|| vec![b]);
-    });
+    (rules, second)
+}
+
+pub fn part_one(input: &str) -> Option<u32> {
+    let (rules, second) = parse_input(input);
 
     second
         .lines()
         .map(|line| {
-            let pages = line
-                .split(",")
+            line.split(",")
                 .map(|n| n.parse::<u32>().unwrap())
-                .collect::<Vec<_>>();
-
-            if pages.iter().enumerate().any(|(i, &page)| {
-                if let Some(rule) = rules.get(&page)
-                {
-                    pages[..i].iter().any(|&p| rule.contains(&p))
-                } else {
-                    false
-                }
-            }) {
-                0
-            } else {
-                pages[pages.len() / 2]
-            }
+                .collect::<Vec<_>>()
         })
+        .filter(|pages| pages.is_sorted_by(|a, b| rules.contains(&(*a, *b))))
+        .map(|pages| pages[pages.len() / 2])
         .sum::<u32>()
         .into()
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    let (first, second) = input.split_once("\n\n").unwrap();
-    let rules_vec = first
-        .lines()
-        .map(|line| {
-            let (a, b) = line.split_once("|").unwrap();
-            let a = a.parse::<u32>().unwrap();
-            let b = b.parse::<u32>().unwrap();
-            (a, b)
-        })
-        .collect::<Vec<_>>();
-
-    let mut rules: HashMap<u32, Vec<u32>, BuildHasherDefault<NoHashHasher<u32>>> =
-        HashMap::with_capacity_and_hasher(rules_vec.len(), BuildHasherDefault::default());
-    rules_vec.iter().for_each(|&(a, b)| {
-        rules
-            .entry(a)
-            .and_modify(|e| e.push(b))
-            .or_insert_with(|| vec![b]);
-    });
+    let (rules, second) = parse_input(input);
 
     second
         .lines()
         .map(|line| {
-            let mut pages = line
-                .split(",")
+            line.split(",")
                 .map(|n| n.parse::<u32>().unwrap())
-                .collect::<Vec<_>>();
-
-            if pages.iter().enumerate().any(|(i, &page)| {
-                if let Some(rule) = rules.get(&page)
-                {
-                    pages[..i].iter().any(|&p| rule.contains(&p))
+                .collect::<Vec<_>>()
+        })
+        .filter(|pages| !pages.is_sorted_by(|a, b| rules.contains(&(*a, *b))))
+        .map(|mut pages| {
+            pages.sort_by(|a, b| {
+                if rules.contains(&(*a, *b)) {
+                    Ordering::Less
                 } else {
-                    false
+                    Ordering::Greater
                 }
-            }) {
-                pages.sort_by(|a, b| {
-                    if let Some(rule) = rules.get(&a) {
-                        if rule.contains(b) {
-                            return Ordering::Less;
-                        }
-                    }
-
-                    if let Some(rule) = rules.get(&b) {
-                        if rule.contains(a) {
-                            return Ordering::Greater;
-                        }
-                    }
-
-                    Ordering::Equal
-                });
-                pages[pages.len() / 2]
-            } else {
-                0
-            }
+            });
+            pages[pages.len() / 2]
         })
         .sum::<u32>()
         .into()
@@ -122,8 +67,22 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
+    fn solve_part_one() {
+        let result = part_one(&advent_of_code::template::read_file("inputs", DAY));
+        assert_eq!(result, Some(5275));
+    }
+
+    #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(123));
+    }
+
+    #[test]
+    #[ignore]
+    fn solve_part_two() {
+        let result = part_two(&advent_of_code::template::read_file("inputs", DAY));
+        assert_eq!(result, Some(6191));
     }
 }
