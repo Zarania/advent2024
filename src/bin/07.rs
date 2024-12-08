@@ -88,4 +88,18 @@ mod tests {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(11387));
     }
+
+    #[test]
+    #[ignore]
+    fn solve_part_one() {
+        let result = part_one(&advent_of_code::template::read_file("inputs", DAY));
+        assert_eq!(result, Some(5540634308362));
+    }
+
+    #[test]
+    #[ignore]
+    fn solve_part_two() {
+        let result = part_two(&advent_of_code::template::read_file("inputs", DAY));
+        assert_eq!(result, Some(472290821152397));
+    }
 }
