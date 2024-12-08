@@ -43,7 +43,7 @@ pub fn part_two(input: &str) -> Option<u32> {
         })
         .filter(|pages| !pages.is_sorted_by(|a, b| rules.contains(&(*a, *b))))
         .map(|mut pages| {
-            pages.sort_by(|a, b| {
+            pages.sort_unstable_by(|a, b| {
                 if rules.contains(&(*a, *b)) {
                     Ordering::Less
                 } else {
