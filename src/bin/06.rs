@@ -96,7 +96,7 @@ pub fn part_two(input: &str) -> Option<u32> {
 
     let mut successes = 0;
     for x in 0..line_length {
-      for y in 0..line_count {
+        for y in 0..line_count {
             if obstacles.contains(&(x, y)) || (x, y) == start_position {
                 continue;
             }
@@ -106,9 +106,12 @@ pub fn part_two(input: &str) -> Option<u32> {
             }
 
             let (mut position, mut direction) = position.unwrap();
-            position = ((position.0 as isize - direction.0) as usize, (position.1 as isize - direction.1) as usize);
+            position = (
+                (position.0 as isize - direction.0) as usize,
+                (position.1 as isize - direction.1) as usize,
+            );
             let mut visited = FxHashSet::default();
-            
+
             visited.insert((position, direction));
             obstacles.insert((x, y));
 
