@@ -6,20 +6,15 @@ const DIRECTIONS: [(i32, i32); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
 
 fn path_length(
     topological: &Vec<Vec<u32>>,
-    cache: &mut Vec<Vec<(bool, FxHashSet<(usize, usize)>)>>,
+    cache: &mut FxHashSet<[(usize, usize); 2]>,
     current: (usize, usize),
-) -> FxHashSet<(usize, usize)> {
-    if cache[current.1][current.0].0 {
-        return cache[current.1][current.0].1.clone();
-    }
-
+    start: (usize, usize),
+) -> () {
     if topological[current.1][current.0] == 9 {
-        cache[current.1][current.0] = (true, FxHashSet::default());
-        cache[current.1][current.0].1.insert((current.0, current.1));
-        return cache[current.1][current.0].1.clone();
+        cache.insert([current, start]);
+        return;
     }
 
-    let mut paths = FxHashSet::default();
     for direction in DIRECTIONS.iter() {
         let next = (
             current.0 as i32 + direction.0,
@@ -32,14 +27,9 @@ fn path_length(
             && topological[next.1 as usize][next.0 as usize]
                 == topological[current.1][current.0] + 1
         {
-            path_length(topological, cache, (next.0 as usize, next.1 as usize))
-                .iter()
-                .for_each(|p| {
-                    paths.insert(*p);
-                });
+            path_length(topological, cache, (next.0 as usize, next.1 as usize), start);
         }
     }
-    paths
 }
 
 fn path_length2(
@@ -85,28 +75,20 @@ pub fn part_one(input: &str) -> Option<u32> {
         })
         .collect::<Vec<_>>();
 
-    let mut cache =
-        vec![vec![(false, FxHashSet::default()); topological[0].len()]; topological.len()];
-
-    let total = topological
+    let mut cache = FxHashSet::default();
+    topological
         .iter()
         .enumerate()
-        .map(|(y, row)| {
+        .for_each(|(y, row)| {
             row.iter()
-                .enumerate()
-                .map(|(x, cell)| {
-                    if *cell == 0 {
-                        path_length(&topological, &mut cache, (x, y)).len() as u32
-                    } else {
-                        0
-                    }
-                })
-                .sum::<u32>()
-        })
-        .sum::<u32>()
-        .into();
-
-    total
+            .enumerate()
+            .filter(|(_, cell)| **cell == 0)
+                .for_each(|(x, _)| {
+                    path_length(&topological, &mut cache, (x, y), (x, y));
+                });
+        });
+        
+    Some(cache.len() as u32)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
